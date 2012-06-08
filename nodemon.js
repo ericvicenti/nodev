@@ -11,6 +11,7 @@ var fs = require('fs'),
     exec = childProcess.exec,
     flag = './.monitor',
     child = null,
+    inspector = null,
     monitor = null,
     ignoreFilePath = './.nodemonignore',
     oldIgnoreFilePath = './nodemon-ignore',
@@ -168,6 +169,7 @@ watchFileChecker.verify = function() {
 function startNode() {
   util.log('\x1B[32m[nodemon] starting `' + program.options.exec + ' ' + program.args.join(' ') + '`\x1B[0m');
 
+  inspector = spawn('/usr/local/bin/node-inspector',[]);
   child = spawn(program.options.exec, program.args);
 
   lastStarted = +new Date;
@@ -180,12 +182,21 @@ function startNode() {
     process.stderr.write(data);
   });
 
+  inspector.stdout.on('data', function (data) {
+    util.print(data);
+  });
+
+  inspector.stderr.on('data', function (data) {
+    process.stderr.write(data);
+  });
+
   child.on('exit', function (code, signal) {
     // In case we killed the app ourselves, set the signal thusly
     if (killedAfterChange) {
       killedAfterChange = false;
       signal = 'SIGUSR2';
     }
+    inspector.kill('SIGHUP');
     // this is nasty, but it gives it windows support
     if (isWindows && signal == 'SIGTERM') signal = 'SIGUSR2';
     // exit the monitor, but do it gracefully
@@ -436,7 +447,7 @@ function getNodemonArgs() {
     indexOfApp = len;
   }
 
-  var appargs = [], //process.argv.slice(indexOfApp),
+  var appargs = ['--debug'], //process.argv.slice(indexOfApp),
       // app = appargs[0],
       nodemonargs = process.argv.slice(2, indexOfApp - (app ? 1 : 0)),
       arg,
