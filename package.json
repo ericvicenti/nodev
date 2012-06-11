@@ -1,12 +1,12 @@
 {
-    "name": "dnode",
-    "homepage": "http://github.com/ericvicenti/dnode",
+    "name": "nodev",
+    "homepage": "http://github.com/ericvicenti/nodev",
     "author": {
       "name": "Remy Sharp",
       "url": "http://github.com/remy"
     },
-    "bin": { "dnode" : "./dnode.js" },
-    "repository": { "type" : "git", "url" : "http://github.com/ericvicenti/dnode.git" },
+    "bin": { "nodev" : "./nodev.js" },
+    "repository": { "type" : "git", "url" : "http://github.com/ericvicenti/nodev.git" },
     "description": "Auto re-loading of node apps with node-inspector",
     "keywords": ["monitor", "development", "restart", "autoload", "reload", "debug", "node-inspector", "dev", "inspector", "console"],
     "version": "0.7.0",
@@ -20,5 +20,5 @@
       "socket.io":"0.9.x",
       "node-inspector":"0.2.x"
     },
-    "main": "./dnode"
+    "main": "./nodev"
 }
