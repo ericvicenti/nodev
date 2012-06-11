@@ -39,11 +39,12 @@ var _ = require('underscore'),
     // Make this the last call so it can use the variables defined above (specifically isWindows)
     program = getDNodeArgs(),
     watched = [],
-    io = require('socket.io').disable('log').listen(5859),
+    io = require('socket.io').listen(5859),
     ioSocket = false,
     logBuffer = [],
     inspectorReloadWaiting = false;
 
+io.disable('log');
 io.sockets.on('connection',function(socket){
   util.log('[]connected');
   var firstConnect = !ioSocket;
@@ -201,7 +202,7 @@ watchFileChecker.verify = function() {
 function startNode() {
   util.log('\x1B[32m[dnode] starting `' + program.options.exec + ' ' + program.args.join(' ') + '`\x1B[0m');
 
-  inspector = spawn('node-inspector',[]);
+  inspector = spawn('node-inspector',['--web-port=5801']);
   child = spawn(program.options.exec, program.args);
 
   lastStarted = +new Date;
