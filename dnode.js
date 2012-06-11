@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-var fs = require('fs'),
+var _ = require('underscore'),
+    fs = require('fs'),
     util = require('util'),
     childProcess = require('child_process'),
     dirs = [],
@@ -13,8 +14,7 @@ var fs = require('fs'),
     child = null,
     inspector = null,
     monitor = null,
-    ignoreFilePath = './.nodemonignore',
-    oldIgnoreFilePath = './nodemon-ignore',
+    ignoreFilePath = './.dnodeignore',
     ignoreFiles = [],
     reIgnoreFiles = null,
     timeout = 1000, // check every 1 second
@@ -37,10 +37,43 @@ var fs = require('fs'),
     // Flag to distinguish an app crash from intentional killing (used on Windows only for now)
     killedAfterChange = false,
     // Make this the last call so it can use the variables defined above (specifically isWindows)
-    program = getNodemonArgs(),
-    watched = [];
+    program = getDNodeArgs(),
+    watched = [],
+    io = require('socket.io').disable('log').listen(5859),
+    ioSocket = false,
+    logBuffer = [],
+    inspectorReloadWaiting = false;
 
-
+io.sockets.on('connection',function(socket){
+  util.log('[]connected');
+  var firstConnect = !ioSocket;
+  ioSocket = socket;
+  function startLogReporter(){
+    setInterval(function(){
+      if(logBuffer.length) console.log(logBuffer);
+      socket.emit('appConsole',logBuffer);
+      logBuffer = [];
+    },500);
+  }
+  if(firstConnect || inspectorReloadWaiting){
+    reloadInspector();
+    setTimeout(function(){ startLogReporter(); }, 2000);
+  } else {
+    startLogReporter();
+  }
+});
+function reloadInspector(){
+  console.log('triggering reset');
+  if(ioSocket){
+    ioSocket.emit('appReset',{});
+  } else {
+    inspectorReloadWaiting = true;
+  }
+}
+function inspectorLog(msg, level){
+  var data = {message: msg.toString() , level: level};
+  logBuffer.push(data);
+}
 
 // test to see if the version of find being run supports searching by seconds (-mtime -1s -print)
 var testAndStart = function() {
@@ -138,10 +171,10 @@ watchFileChecker.check = function(cb) {
   } else {
     tmpdir = '/tmp';
   }
-  var watchFileName = tmpdir + seperator + 'nodemonCheckFsWatch'
+  var watchFileName = tmpdir + seperator + 'dnodeCheckFsWatch'
   var watchFile = fs.openSync(watchFileName, 'w');
   if (!watchFile) {
-    util.log('\x1B[32m[nodemon] Unable to write to temp directory. If you experience problems with file reloading, ensure ' + tmpdir + ' is writable.\x1B[0m');
+    util.log('\x1B[32m[dnode] Unable to write to temp directory. If you experience problems with file reloading, ensure ' + tmpdir + ' is writable.\x1B[0m');
     cb(true);
     return;
   }  
@@ -166,18 +199,32 @@ watchFileChecker.verify = function() {
 
 
 function startNode() {
-  util.log('\x1B[32m[nodemon] starting `' + program.options.exec + ' ' + program.args.join(' ') + '`\x1B[0m');
+  util.log('\x1B[32m[dnode] starting `' + program.options.exec + ' ' + program.args.join(' ') + '`\x1B[0m');
 
+<<<<<<< Updated upstream
   inspector = spawn('/usr/local/bin/node-inspector',[]);
+=======
+  inspector = spawn('node-inspector',[]);
+>>>>>>> Stashed changes
   child = spawn(program.options.exec, program.args);
 
   lastStarted = +new Date;
 
   child.stdout.on('data', function (data) {
+    inspectorLog(data, 'log');
     util.print(data);
   });
 
   child.stderr.on('data', function (data) {
+    inspectorLog(data, 'error');
+    process.stderr.write(data);
+  });
+
+  inspector.stdout.on('data', function (data) {
+    util.print(data);
+  });
+
+  inspector.stderr.on('data', function (data) {
     process.stderr.write(data);
   });
 
@@ -202,14 +249,15 @@ function startNode() {
     if (signal == 'SIGUSR2') {
       // restart
       startNode();
+      reloadInspector();
     } else if (code === 0) { // clean exit - wait until file change to restart
-      util.log('\x1B[32m[nodemon] clean exit - waiting for changes before restart\x1B[0m');
+      util.log('\x1B[32m[dnode] clean exit - waiting for changes before restart\x1B[0m');
       child = null;
     } else if (program.options.exitcrash) {
-      util.log('\x1B[1;31m[nodemon] app crashed\x1B[0m');
+      util.log('\x1B[1;31m[dnode] app crashed\x1B[0m');
       process.exit(0);
     } else {
-      util.log('\x1B[1;31m[nodemon] app crashed - waiting for file changes before starting...\x1B[0m');
+      util.log('\x1B[1;31m[dnode] app crashed - waiting for file changes before starting...\x1B[0m');
       child = null;
     }
   });
@@ -288,7 +336,7 @@ function startMonitor() {
     // changedSince, the fallback for when both the find method and fs.watch don't work, 
     // is not compatible with the way changeFunction works. If we have reached this point,
     // changeFunction should not be called from herein out. 
-    changeFunction = function() { util.error("Nodemon error: changeFunction called when it shouldn't be.") }
+    changeFunction = function() { util.error("[dnode ERROR]: changeFunction called when it shouldn't be.") }
   }
 
   // filter ignored files
@@ -315,9 +363,9 @@ function startMonitor() {
         if (files.length) {
           if (restartTimer !== null) clearTimeout(restartTimer);
           restartTimer = setTimeout(function () {
-            if (program.options.verbose) util.log('[nodemon] restarting due to changes...');
+            if (program.options.verbose) util.log('[dnode] restarting due to changes...');
             files.forEach(function (file) {
-              if (program.options.verbose) util.log('[nodemon] ' + file);
+              if (program.options.verbose) util.log('[dnode] ' + file);
             });
             if (program.options.verbose) util.print('\n\n');
 
@@ -344,9 +392,9 @@ function startMonitor() {
         if (files.length) {
           if (restartTimer !== null) clearTimeout(restartTimer);
           restartTimer = setTimeout(function () {
-            if (program.options.verbose) util.log('[nodemon] restarting due to changes...');
+            if (program.options.verbose) util.log('[dnode] restarting due to changes...');
             files.forEach(function (file) {
-              if (program.options.verbose) util.log('[nodemon] ' + file);
+              if (program.options.verbose) util.log('[dnode] ' + file);
             });
             if (program.options.verbose) util.print('\n\n');
 
@@ -402,7 +450,7 @@ function readIgnoreFile(curr, prev) {
 
   // Check if ignore file still exists. Vim tends to delete it before replacing with changed file
   exists(ignoreFilePath, function(exists) {
-    if (program.options.verbose) util.log('[nodemon] reading ignore list');
+    if (program.options.verbose) util.log('[dnode] reading ignore list');
 
     // ignoreFiles = ignoreFiles.concat([flag, ignoreFilePath]);
     // addIgnoreRule(flag);
@@ -416,13 +464,13 @@ function readIgnoreFile(curr, prev) {
 }
 
 // attempt to shutdown the wrapped node instance and remove
-// the monitor file as nodemon exists
+// the monitor file as dnode exists
 function cleanup() {
   child && child.kill();
   // fs.unlink(flag);
 }
 
-function getNodemonArgs() {
+function getDNodeArgs() {
   var args = process.argv,
       len = args.length,
       i = 2,
@@ -453,7 +501,7 @@ function getNodemonArgs() {
 
   var appargs = ['--debug'], //process.argv.slice(indexOfApp),
       // app = appargs[0],
-      nodemonargs = process.argv.slice(2, indexOfApp - (app ? 1 : 0)),
+      dnodeargs = process.argv.slice(2, indexOfApp - (app ? 1 : 0)),
       arg,
       options = {
         delay: 1,
@@ -463,12 +511,12 @@ function getNodemonArgs() {
         js: false, // becomes the default anyway...
         includeHidden: false,
         exitcrash: false,
-        forceLegacyWatch: false, // forces nodemon to use the slowest but most compatible method for watching for file changes
+        forceLegacyWatch: false, // forces dnode to use the slowest but most compatible method for watching for file changes
         stdin: true
         // args: []
       };
 
-  // process nodemon args
+  // process dnode args
   args.splice(0, 2);
   while (arg = args.shift()) {
     if (arg === '--help' || arg === '-h' || arg === '-?') {
@@ -514,7 +562,7 @@ function getAppScript(program) {
     // or we could, but the code would get messy, so this will do exactly
     // what we're after - if the file doesn't exist, it'll throw.
     try {
-      // note: this isn't nodemon's package, it's the user's cwd package
+      // note: this isn't dnode's package, it's the user's cwd package
       program.app = JSON.parse(fs.readFileSync('./package.json').toString()).main;
       if (program.app === undefined) {
         // no app found to run - so give them a tip and get the feck out
@@ -582,7 +630,7 @@ function version() {
 function help() {
   util.print([
     '',
-    ' Usage: nodemon [options] [script.js] [args]',
+    ' Usage: dnode [options] [script.js] [args]',
     '',
     ' Options:',
     '',
@@ -591,43 +639,43 @@ function help() {
     '                     directory to watch',
     '  -x, --exec app     execute script with "app", ie. -x "python -v"',
     '  -I, --no-stdin     don\'t try to read from stdin',
-    '  -q, --quiet        minimise nodemon messages to start/stop only',
-    '  --exitcrash        exit on crash, allows use of nodemon with',
+    '  -q, --quiet        minimise dnode messages to start/stop only',
+    '  --exitcrash        exit on crash, allows use of dnode with',
     '                     daemon tools like forever.js',
     '  -L, --legacy-watch Forces node to use the most compatible',
     '                     version for watching file changes',
-    '  -v, --version      current nodemon version',
+    '  -v, --version      current dnode version',
     '  -h, --help         you\'re looking at it',
     '',
-    ' Note: if the script is omitted, nodemon will try to ',
-    ' read "main" from package.json and without a .nodemonignore,',
-    ' nodemon will monitor .js and .coffee by default.',
+    ' Note: if the script is omitted, dnode will try to ',
+    ' read "main" from package.json and without a .dnodeignore,',
+    ' dnode will monitor .js and .coffee by default.',
     '',
     ' Examples:',
     '',
-    '  $ nodemon server.js',
-    '  $ nodemon -w ../foo server.js apparg1 apparg2',
-    '  $ PORT=8000 nodemon --debug-brk server.js',
-    '  $ nodemon --exec python app.py',
+    '  $ dnode server.js',
+    '  $ dnode -w ../foo server.js apparg1 apparg2',
+    '  $ PORT=8000 dnode --debug-brk server.js',
+    '  $ dnode --exec python app.py',
     '',
-    ' For more details see http://github.com/remy/nodemon/',
+    ' For more details see http://github.com/remy/dnode/',
     ''
   ].join('\n') + '\n');
   process.exit(0);
 }
 
 // this little bit of hoop jumping is because sometimes the file can't be
-// touched properly, and it send nodemon in to a loop of restarting.
+// touched properly, and it send dnode in to a loop of restarting.
 // this way, the .monitor file is removed entirely, and recreated with
 // permissions that anyone can remove it later (i.e. if you run as root
 // by accident and then try again later).
 // if (path.existsSync(flag)) fs.unlinkSync(flag);
-// fs.writeFileSync(flag, '.'); // requires some content https://github.com/remy/nodemon/issues/36
+// fs.writeFileSync(flag, '.'); // requires some content https://github.com/remy/dnode/issues/36
 // fs.chmodSync(flag, '666');
 
 // remove the flag file on exit
 process.on('exit', function (code) {
-  if (program.options.verbose) util.log('[nodemon] exiting');
+  if (program.options.verbose) util.log('[dnode] exiting');
   cleanup();
 });
 
@@ -647,9 +695,9 @@ if (!isWindows) { // because windows borks when listening for the SIG* events
 
 // TODO on a clean exit, we could continue to monitor the directory and reboot the service
 
-// on exception *inside* nodemon, shutdown wrapped node app
+// on exception *inside* dnode, shutdown wrapped node app
 process.on('uncaughtException', function (err) {
-  util.log('[nodemon] exception in nodemon killing node');
+  util.log('[dnode] exception in dnode killing node');
   util.error(err.stack);
   cleanup();
 });
@@ -676,37 +724,22 @@ if (!program.app) {
   help();
 }
 
-if (program.options.verbose) util.log('[nodemon] v' + meta.version);
+if (program.options.verbose) util.log('[dnode] v' + meta.version);
 
 // this was causing problems for a lot of people, so now not moving to the subdirectory
 // process.chdir(path.dirname(app));
 dirs.forEach(function(dir) {
-  if (program.options.verbose) util.log('\x1B[32m[nodemon] watching: ' + dir + '\x1B[0m');
+  if (program.options.verbose) util.log('\x1B[32m[dnode] watching: ' + dir + '\x1B[0m');
 });
 
 // findStatOffset();
 
 exists(ignoreFilePath, function (exist) {
   // watch it: "exist" not to be confused with "exists"....
-  if (!exist) {
-    // try the old format
-    exists(oldIgnoreFilePath, function (exist) {
-      if (exist) {
-        if (program.options.verbose) util.log('[nodemon] detected old style .nodemonignore');
-        ignoreFilePath = oldIgnoreFilePath;
-      } else {
-        // don't create the ignorefile, just ignore the flag & JS
-        // addIgnoreRule(flag);
-        var ext = program.ext.replace(/\./g, '\\.');
-        if (ext) {
-          addIgnoreRule('^((?!' + ext + '$).)*$', true);
-        } else {
-          addIgnoreRule('^((?!\.js|\.coffee$).)*$', true); // ignores everything except JS
-        }
-      }
-    });
-  } else {
+  if (exist) {
     readIgnoreFile();
+  } else {
+    addIgnoreRule('^((?!\.js|\.coffee$).)*$', true); // ignores everything except JS & CS
   }
 });
 
