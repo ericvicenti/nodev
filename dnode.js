@@ -201,11 +201,7 @@ watchFileChecker.verify = function() {
 function startNode() {
   util.log('\x1B[32m[dnode] starting `' + program.options.exec + ' ' + program.args.join(' ') + '`\x1B[0m');
 
-<<<<<<< Updated upstream
-  inspector = spawn('/usr/local/bin/node-inspector',[]);
-=======
   inspector = spawn('node-inspector',[]);
->>>>>>> Stashed changes
   child = spawn(program.options.exec, program.args);
 
   lastStarted = +new Date;
