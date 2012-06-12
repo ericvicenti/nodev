@@ -11,7 +11,7 @@
     "repository": { "type" : "git", "url" : "http://github.com/ericvicenti/nodev.git" },
     "description": "Auto re-loading of node apps with node-inspector",
     "keywords": ["monitor", "development", "restart", "autoload", "reload", "debug", "node-inspector", "dev", "inspector", "console"],
-    "version": "0.7.1",
+    "version": "0.7.2",
     "preferGlobal" : "true",
     "licenses": [{
       "type": "MIT",
