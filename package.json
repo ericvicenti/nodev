@@ -1,9 +1,11 @@
 {
     "name": "nodev",
     "homepage": "http://ericvicenti.github.com/nodev/",
+    "original_author": {
+      "name": "Remy Sharp",
+      "url": "http://github.com/remy"
+    },
     "author": {
-    //  "name": "Remy Sharp",
-    //  "url": "http://github.com/remy"
       "name": "Eric Vicenti",
       "url": "http://github.com/ericvicenti"
     },
