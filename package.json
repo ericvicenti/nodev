@@ -1,15 +1,17 @@
 {
     "name": "nodev",
-    "homepage": "http://github.com/ericvicenti/nodev",
+    "homepage": "http://ericvicenti.github.com/nodev/",
     "author": {
-      "name": "Remy Sharp",
-      "url": "http://github.com/remy"
+    //  "name": "Remy Sharp",
+    //  "url": "http://github.com/remy"
+      "name": "Eric Vicenti",
+      "url": "http://github.com/ericvicenti"
     },
     "bin": { "nodev" : "./nodev.js" },
     "repository": { "type" : "git", "url" : "http://github.com/ericvicenti/nodev.git" },
     "description": "Auto re-loading of node apps with node-inspector",
     "keywords": ["monitor", "development", "restart", "autoload", "reload", "debug", "node-inspector", "dev", "inspector", "console"],
-    "version": "0.7.0",
+    "version": "0.7.1",
     "preferGlobal" : "true",
     "licenses": [{
       "type": "MIT",

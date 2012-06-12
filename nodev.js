@@ -217,19 +217,19 @@ function startNode() {
   });
 
   inspector.stdout.on('data', function (data) {
-    util.print(data);
+    var lines = (new String(data)).split('\n');
+    _.each(lines,function(line){
+      if(line=='') return;
+      util.log('\x1B[32m[nodev node-inspector] '+line+'\x1B[0m');
+    });
   });
 
   inspector.stderr.on('data', function (data) {
-    process.stderr.write(data);
-  });
-
-  inspector.stdout.on('data', function (data) {
-    util.print(data);
-  });
-
-  inspector.stderr.on('data', function (data) {
-    process.stderr.write(data);
+    var lines = (new String(data)).split('\n');
+    _.each(lines,function(line){
+      if(line=='') return;
+      util.log('[nodev node-inspector] '+line);
+    });
   });
 
   child.on('exit', function (code, signal) {
