@@ -1,0 +1,197 @@
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on http://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen"/>
+  <link rel="stylesheet" href="stylesheets/pygment_trac.css"/>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script>
+
+  <title>nodev</title>
+  <meta name="description" content="Automated running and debugging of node.js apps in development">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">nodev</h1>
+    </header>
+    <div id="container">
+      <p class="tagline">Automated running and debugging of node.js apps in development</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/ericvicenti/nodev/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/ericvicenti/nodev/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/ericvicenti/nodev" class="code">View nodev on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <h1>nodev</h1>
+
+<p>Assists with the running and debugging of node.js based applications in development. nodev launches node-inspector alongside your app in debug mode, and it reloads it all when files change in the current working directory. nodev comes with a site-specific-browser for node-inspector on OSX, which makes for one awesome debugging environment. nodev is forked from <a href="https://github.com/remy/nodemon">remy's nodemon</a>.</p>
+
+<p>nodev does <strong>not</strong> require <em>any</em> changes to your code or method of development. nodev simply wraps your node application and keeps an eye on any files that have changed. It also maintains the debugger server and makes sure node is run in debug mode. Remember that nodev is a replacement wrapper for <code>node</code>, think of it as replacing the word "node" on the command line when you run your script.</p>
+
+<p>Nodev is designed explicitly for use while developing your app. It is not meant to be used in production.</p>
+
+<h1>Installation</h1>
+
+<p>Either through forking or by using <a href="http://npmjs.org">npm</a> (the recommended way):</p>
+
+<pre><code>npm install nodev -g
+</code></pre>
+
+<p>And nodev will be installed in to your bin path. Note that as of npm v1, you must explicitly tell npm to install globally as nodev is a command line utility.</p>
+
+<h1>Usage</h1>
+
+<p>nodev wraps your application, so you can pass all the arguments you would normally pass to your app:</p>
+
+<pre><code>nodev [your node app]
+</code></pre>
+
+<p>For example, if my application accepted a host and port as the arguments, I would start it as so:</p>
+
+<pre><code>nodev ./server.js localhost 8080
+</code></pre>
+
+<p>Any output from this script is prefixed with <code>[nodev]</code>, otherwise all output from your application, errors included, will be echoed out as expected.</p>
+
+<p>Once nodev is started, you can debug by using the included site-specific-browser for OSX, or by browsing to</p>
+
+<pre><code>http://localhost:5801/debug?port=5858
+</code></pre>
+
+<p>nodev also supports running and monitoring <a href="http://jashkenas.github.com/coffee-script/">coffee-script</a> apps:</p>
+
+<pre><code>nodev server.coffee
+</code></pre>
+
+<p>If no script is given, nodev will test for a <code>package.json</code> file and if found, will run the file associated with the <em>main</em> property (<a href="https://github.com/remy/nodev/issues/14">ref</a>).</p>
+
+<p>If you have a <code>package.json</code> file for your app, you can omit the main script entirely and nodev will read the <code>package.json</code> for the <code>main</code> property and use that value as the app.</p>
+
+<h1>Automatic re-running</h1>
+
+<p>nodev (then nodemon) was original written to restart hanging processes such as web servers, but now supports apps that cleanly exit. If your script exits cleanly, nodev will continue to monitor the directory (or directories) and restart the script if there are any changes.</p>
+
+<h1>Running non-node scripts</h1>
+
+<p>nodev can also be used to execute and monitor other programs. nodev will read the file extension of the script being run and monitor that extension instead of .js if there's no .nodevignore:</p>
+
+<pre><code>nodev --exec "python -v" ./app.py
+</code></pre>
+
+<p>Now nodev will run <code>app.py</code> with python in verbose mode (note that if you're not passing args to the exec program, you don't need the quotes), and look for new or modified files with the <code>.py</code> extension.</p>
+
+<h1>Monitoring multiple directories</h1>
+
+<p>By default nodev monitors the current working directory. If you want to take control of that option, use the <code>--watch</code> option to add specific paths:</p>
+
+<pre><code>nodev --watch app --watch libs app/server.js
+</code></pre>
+
+<p>Now nodev will only restart if there are changes in the <code>./app</code> or <code>./libs</code> directory. By default nodev will traverse sub-directories, so there's no need in explicitly including sub-directories.</p>
+
+<h1>Delaying restarting</h1>
+
+<p>In some situations, you may want to wait until a number of files have changed. The timeout before checking for new file changes is 1 second. If you're uploading a number of files and it's taking some number of seconds, this could cause your app to restart multiple time unnecessarily.</p>
+
+<p>To add an extra throttle, or delay restarting, use the <code>--delay</code> command:</p>
+
+<pre><code>nodev --delay 10 server.js
+</code></pre>
+
+<p>The delay figure is number of seconds to delay before restarting. So nodev will only restart your app the given number of seconds after the <em>last</em> file change.</p>
+
+<h1>Ignoring files</h1>
+
+<p>By default, if nodev will only restart when a <code>.js</code> or <code>.cs</code> file changes.  In some cases you will want to ignore some specific files, directories or file patterns, to prevent nodev from prematurely restarting your application.</p>
+
+<p>You can use the <a href="http://github.com/ericvicenti/nodev/blob/master/nodevignore.example">example ignore file</a> (note that this example file is not hidden - you must rename it to <code>.nodevignore</code>) as a basis for your nodev, but it's very simple to create your own:</p>
+
+<pre><code># this is my ignore file with a nice comment at the top
+
+/vendor/*     # ignore all external submodules
+/public/*     # static files
+./README.md   # a specific file
+*.css         # ignore any CSS files too
+</code></pre>
+
+<p>The ignore file accepts:</p>
+
+<ul>
+<li>Comments starting with a <code>#</code> symbol</li>
+<li>Blank lines</li>
+<li>Specific files</li>
+<li>File patterns (this is converted to a regex, so you have full control of the pattern)</li>
+</ul><h1>Controlling shutdown of your script</h1>
+
+<p>nodev sends a kill signal to your application when it sees a file update. If you need to clean up on shutdown inside your script you can capture the kill signal and handle it yourself.</p>
+
+<p>The following example will listen once for the <code>SIGUSR2</code> signal (used by nodev to restart), run the clean up process and then kill itself for nodev to continue control:</p>
+
+<pre><code>process.once('SIGUSR2', function () {
+  gracefulShutdown(function () {
+    process.kill(process.pid, 'SIGUSR2'); 
+  })
+});
+</code></pre>
+
+<p>Note that the <code>process.kill</code> is <em>only</em> called once your shutdown jobs are complete. Hat tip to <a href="http://www.benjiegillam.com/2011/08/node-js-clean-restart-and-faster-development-with-nodev/">Benjie Gillam</a> for writing technique this up.</p>
+
+<h1>Using nodev with forever</h1>
+
+<p>If you're using nodev with <a href="https://github.com/nodejitsu/forever">forever</a> you can combine the two together. This way if the script crashes, forever restarts the script, and if there are file changes, nodev restarts your script. For more detail, see <a href="https://github.com/remy/nodemon/issues/30">nodemon issue 30</a>.</p>
+
+<p>To acheive this you need to include the <code>--exitcrash</code> flag to ensure nodev exits if the script crashes (or exits unexpectedly):</p>
+
+<pre><code>forever nodev --exitcrash server.js
+</code></pre>
+
+<p>To test this, you can kill the server.js process and forever will restart it. If you <code>touch server.js</code> nodev will restart it.</p>
+
+<p>Note that I <em>would not</em> recommend using nodev in a production environment - but that's because I wouldn't want it restart without my explicit instruction.</p>
+
+<h1>Help! My changes aren't being detected!</h1>
+
+<p>nodev has three potential methods it uses to look for file changes. First, it polls using the find command to search for files modified within the last second. This method works on systems with a BSD based find (Mac, for example). </p>
+
+<p>Next it tries using node's fs.watch. fs.watch will not always work however, and nodev will try and detect if this is the case by writing a file to the tmp directory and seeing if fs.watch is triggered when it's removed. If nodev finds that fs.watch was not triggered, it will then fall back to the third method (called legacy watch), which works by statting each file in your working directory looking for changes to the last modified time. This is the most cpu intensive method, but it may be the only option on some systems.</p>
+
+<p>In certain cases, like when where you are working on a different drive than your tmp directory is on, fs.watch may give you a false positive. You can force nodev to start using the most compatible legacy method by passing the -L switch, e.g. <code>nodev -L /my/odd/file.js</code>.</p>
+
+<h1>License</h1>
+
+<p>MIT <a href="http://rem.mit-license.org">http://rem.mit-license.org</a></p>
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/ericvicenti" class="avatar"><img src="https://secure.gravatar.com/avatar/7562faa62dbd557a6155b172cf149d13?s=30&amp;d=https://a248.e.akamai.net/assets.github.com%2Fimages%2Fgravatars%2Fgravatar-140.png" width="48" height="48"/></a> <a href="https://github.com/ericvicenti">ericvicenti</a> maintains <a href="https://github.com/ericvicenti/nodev">nodev</a></p>
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br/>theme by <a href="http://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/ericvicenti/nodev/tarball/master" class="tar">tar</a><a href="https://github.com/ericvicenti/nodev/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
+
+  
+</body>
+</html>
