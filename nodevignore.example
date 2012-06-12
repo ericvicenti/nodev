@@ -1,4 +1,4 @@
-# .nodemonignore file
+# .nodevignore file (Don't forget to rename- prepend with .)
 #
 # This is an example of a comment
 #
@@ -8,4 +8,6 @@
 # /vendor/*
 # /public/css/styles.css
 # ./server.js
-# ./.git/*
+
+./.git/*
+*/*.swp
