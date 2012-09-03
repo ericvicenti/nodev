@@ -201,7 +201,7 @@ watchFileChecker.verify = function() {
 function startNode() {
   util.log('\x1B[32m[nodev] starting `' + program.options.exec + ' ' + program.args.join(' ') + '`\x1B[0m');
 
-  inspector = spawn('node-inspector',['--web-port=5801']);
+  inspector = spawn('node-inspector' + (isWindows ? '.cmd' : ''),['--web-port=5801']);
   child = spawn(program.options.exec, program.args);
 
   lastStarted = +new Date;
@@ -238,7 +238,12 @@ function startNode() {
       killedAfterChange = false;
       signal = 'SIGUSR2';
     }
-    inspector.kill('SIGHUP');
+    if(isWindows){
+      exec('taskkill /pid '+inspector.pid+' /T /F');
+    }{
+      inspector.kill('SIGHUP');
+    }
+    util.log('\x1B[1;31m[nodev] inspector stopped\x1B[0m');
     // this is nasty, but it gives it windows support
     if (isWindows && signal == 'SIGTERM') signal = 'SIGUSR2';
     // exit the monitor, but do it gracefully
