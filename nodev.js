@@ -240,7 +240,7 @@ function startNode() {
     }
     if(isWindows){
       exec('taskkill /pid '+inspector.pid+' /T /F');
-    }{
+    } else {
       inspector.kill('SIGHUP');
     }
     util.log('\x1B[1;31m[nodev] inspector stopped\x1B[0m');
