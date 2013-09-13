@@ -1,4 +1,10 @@
-# nodev
+# nodev - (now deprecated)
+
+I no longer have time to maintain nodev, so I cannot reccomend anyone to start using it. Personally, I have not used node-inspector for some time because of the lack of community support.
+
+If you would like to assist in maintaining nodev, I would be happy to help facilitate that.
+
+## Summary
 
 Assists with the running and debugging of node.js based applications in development. nodev launches node-inspector alongside your app, and will reload everything when files change. nodev comes with a site-specific-browser for node-inspector on OSX, which connects with nodev via Socket.IO to reload itself dynamically. nodev is forked from [remy's nodemon](https://github.com/remy/nodemon).
 
